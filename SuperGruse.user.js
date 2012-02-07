@@ -5,7 +5,7 @@
 // @include	   *.deviantArt.com/#
 // @exclude        http://chat.deviantart.com
 // @exclude        http://browse.deviantart.com
-// @version        0.1.0
+// @version        0.1.1
 // ==/UserScript==
 
 var updateGruse = function(elem, dragTo)
@@ -199,11 +199,25 @@ var toggleEdit = function()
 	window.location = window.location.toString().split("#")[0];
 }
 
+var helpBox = function()
+{
+	if(GM_getValue("allowEdit") == "true")
+	{
+	GM_addStyle("#helpBox{background: rgba(0,0,0,0.5); color: #999; text-align: center; width: 100%; height: 32px; position:fixed; top:100%; margin-top:-32px; padding-top:10px;}");
+	var box = document.createElement("div");
+	box.setAttribute("id", "helpBox");
+	box.innerHTML = "Drag a box over another box to swap them!";
+	document.getElementsByTagName("body")[0].appendChild(box);
+	}
+}
+
 if(GM_getValue("allowEdit").length < 1)
 {
 	GM_setValue("allowEdit", "false");
 }
-window.onload = function(){styler(); editButton()};
+
+
+window.onload = function(){editButton(); styler(); helpBox()};
 window.onmousedown = clickDown;
 window.onmouseup = clickUp;
 
