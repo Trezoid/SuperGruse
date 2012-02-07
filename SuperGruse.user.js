@@ -1,9 +1,11 @@
 // ==UserScript==
 // @name           SuperGruse
 // @namespace      //
-// @include        http://*.deviantart.com/
+// @include        *.deviantart.com/
+// @include	   *.deviantArt.com/#
 // @exclude        http://chat.deviantart.com
 // @exclude        http://browse.deviantart.com
+// @version        0.1.0
 // ==/UserScript==
 
 var updateGruse = function(elem, dragTo)
@@ -15,7 +17,7 @@ var updateGruse = function(elem, dragTo)
 
 	GM_xmlhttpRequest({
 		method:"POST",
-		url: window.location+"/global/difi/?",
+		url: window.location.toString().split("#")[0]+"/global/difi/?",
 		data: postDat,	
 		headers: {
 			"Content-Type" : "application/x-www-form-urlencoded; charset=UTF-8",
@@ -25,6 +27,7 @@ var updateGruse = function(elem, dragTo)
 		onload: function(res)
 		{
 			console.log(res.responseText);
+			window.location = window.location.toString().split("#")[0];
 		}
 	});
 }
@@ -60,27 +63,147 @@ var setToElem = function(node)
 
 var clickUp = function(eventHandle)
 {
-	var x = eventHandle.clientX;
-	var y = eventHandle.clientY;
+	var x = eventHandle.clientX - 21;
+	var y = eventHandle.clientY - 21;
 	var node = document.elementFromPoint(x, y);
 	node = nodeUp(node, "gmi-GMFrame_Gruser");
 	setToElem(node);
 	console.log(fromElem.gruseID +", "+fromElem.pageID+"," + toElem.col);
+	window.onmousemove = function(){};
 	updateGruse(fromElem, toElem);
+	
 }
 
 
 var clickDown = function(eventHandle)
 {
+if(GM_getValue("allowEdit") == "true")
+{
+
 	var x = eventHandle.clientX;
 	var y = eventHandle.clientY;
 	var node = document.elementFromPoint(x, y);
-
+	console.log(eventHandle.offsetX);
+	var offset = {x : eventHandle.offsetX, y : eventHandle.offsetY};
 	node = nodeUp(node, "gmi-GMFrame_Gruser");
 	setElem(node);
 	node.setAttribute("class",  node.getAttribute("class") + " drag");
+	node.style.zIndex = 999;
+	node.style.width = ((window.innerWidth/2) - 32) + "px";
+	//node.style.top = y + "px";
+	//node.style.left = x + "px";
+	node.style.opacity = 0.8;
 	node.addEventListener("mouseup", function(){node.setAttribute("class", node.getAttribute("class").split(" drag")[0]);}, true);
+	window.onmousemove = function(eventHandle){mouseMover(eventHandle, offset, node)};
+
+}
 }
 
+var mouseMover = function(eventHandle, offset, node)
+{
+	console.log(eventHandle.clientX + ", " + offset.x);
+	node.style.position = "absolute";
+	node.style.top = ((eventHandle.clientY + window.scrollY) - 20) + "px";
+	node.style.left = (eventHandle.clientX - 20) + "px";
+
+}
+
+var styler = function()
+{
+	//var container = document.getElementById("aboutme-bio");
+	var spans = document.getElementsByTagName("span");
+	console.log(spans.length);
+	var sheet = document.createElement("link");
+	sheet.setAttribute("id", "userstyle");
+	sheet.setAttribute("rel", "stylesheet");
+
+	for(var i = 0; i < spans.length; i++)
+	{
+		console.log(spans[i].className);
+		if(spans[i].className == "abbr" && spans[i].getAttribute("title").indexOf("stylesheet") > -1)
+		{
+			sheet.setAttribute("href", spans[i].getAttribute("title").split("stylesheet:")[1]);
+		}
+	}
+	document.getElementsByTagName("body")[0].appendChild(sheet);
+	
+	var clearStyle = null;
+	var elem  =  document.getElementById("remStyle");
+	if(!elem)
+	{
+		clearStyle = document.createElement("a");
+		clearStyle.className = "gmhyper gmbutton2 gmbutton2qn2r";
+		clearStyle.setAttribute("id", "remStyle");
+		clearStyle.setAttribute("href", "#");
+		var buttonTown = (window.location.toString().indexOf(unsafeWindow.deviantART.deviant.username) > -1) ? document.getElementById("master-editbutton").parentNode : document.getElementById("send-a-note").parentNode;
+		buttonTown.appendChild(clearStyle);
+	}
+	else
+	{
+		clearStyle = elem;
+		clearStyle.removeEventListener("click", styler);
+	}
+	clearStyle.innerHTML="<i class=\"icon i44\"></i>Toggle Style<b></b>"
+	clearStyle.addEventListener("click", stopStyle);
+	
+
+}
+
+
+var stopStyle = function()
+{
+	var style = document.getElementById("userstyle");
+	document.getElementsByTagName("body")[0].removeChild(style);
+	var button = document.getElementById("remStyle");
+	button.innerHTML="<i class=\"icon i43\"></i>Toggle Style<b></b>";
+	button.href="#";
+	button.removeEventListener("click", stopStyle);
+	button.addEventListener("click", styler);
+
+}
+
+
+var editButton = function()
+{
+	var button = document.createElement("a")
+	if(GM_getValue("allowEdit") == "false")
+	{
+		button.className = "gmHyper gmbutton2 gmbutton2qn2r";
+		button.innerHTML = "<i class=\"icon i15\"></i>Edit Page<b></b>";
+	}
+	else
+	{
+		button.className = "gmHyper gmbutton2qn2r gmbutton2";
+		button.innerHTML = "<i class=\"icon i0\"></i>Save<b></b>";
+	}
+	button.href="#";
+	var oldButton = document.getElementById("master-editbutton");
+
+	oldButton.innerHTML = "<i class=\"icon i15\"></i>Add box<b></b>";
+	var buttonTown = oldButton.parentNode;
+
+	buttonTown.appendChild(button);
+	button.addEventListener("mousedown", function(){toggleEdit()}, true);
+
+}
+var toggleEdit = function()
+{
+	if(GM_getValue("allowEdit") == "true")
+	{
+		GM_setValue("allowEdit", "false");
+	}
+	else
+	{
+		GM_setValue("allowEdit", "true");
+	}
+	window.location = window.location.toString().split("#")[0];
+}
+
+if(GM_getValue("allowEdit").length < 1)
+{
+	GM_setValue("allowEdit", "false");
+}
+window.onload = function(){styler(); editButton()};
 window.onmousedown = clickDown;
 window.onmouseup = clickUp;
+
