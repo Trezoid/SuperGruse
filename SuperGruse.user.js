@@ -5,7 +5,7 @@
 // @include	   *.deviantArt.com/#
 // @exclude        http://chat.deviantart.com
 // @exclude        http://browse.deviantart.com
-// @version        0.1.1
+// @version        0.1.2
 // ==/UserScript==
 
 var updateGruse = function(elem, dragTo)
@@ -63,6 +63,9 @@ var setToElem = function(node)
 
 var clickUp = function(eventHandle)
 {
+if(GM_getValue("allowEdit") == "true")
+{
+
 	var x = eventHandle.clientX - 21;
 	var y = eventHandle.clientY - 21;
 	var node = document.elementFromPoint(x, y);
@@ -73,7 +76,7 @@ var clickUp = function(eventHandle)
 	updateGruse(fromElem, toElem);
 	
 }
-
+}
 
 var clickDown = function(eventHandle)
 {
@@ -178,13 +181,15 @@ var editButton = function()
 	}
 	button.href="#";
 	var oldButton = document.getElementById("master-editbutton");
-
+	if(oldButton != null)
+	{
 	oldButton.innerHTML = "<i class=\"icon i15\"></i>Add box<b></b>";
+	
 	var buttonTown = oldButton.parentNode;
 
 	buttonTown.appendChild(button);
 	button.addEventListener("mousedown", function(){toggleEdit()}, true);
-
+	}
 }
 var toggleEdit = function()
 {
@@ -211,13 +216,13 @@ var helpBox = function()
 	}
 }
 
-if(GM_getValue("allowEdit").length < 1)
+if(GM_getValue("allowEdit") == null || GM_getValue("allowEdit").length < 1)
 {
 	GM_setValue("allowEdit", "false");
 }
 
 
-window.onload = function(){editButton(); styler(); helpBox()};
+editButton(); styler(); helpBox();
 window.onmousedown = clickDown;
 window.onmouseup = clickUp;
 
