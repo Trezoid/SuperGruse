@@ -225,4 +225,3 @@ if(GM_getValue("allowEdit") == null || GM_getValue("allowEdit").length < 1)
 editButton(); styler(); helpBox();
 window.onmousedown = clickDown;
 window.onmouseup = clickUp;
-
